@@ -73,7 +73,14 @@ int main(void)
 	GPIOB->AFR[1] &= ~(1<<13);
 	GPIOB->AFR[1] &= ~(1<<12);
 	
+	//Enable USART3
+	USART3 -> CR1 |= (1<<2); //Enable RX
+	USART3 -> CR1 |= (1<<3); //Enable TX
 	
+	USART3 -> BRR |= HAL_RCC_GetHCLKFreq()/115200; //Set Baud Rate to 115200 bits/second
+	
+	NVIC_EnableIRQ(USART3_4_IRQn); // enable USART 3 interrupts
+  	NVIC_SetPriority(USART3_4_IRQn, 2);
 	
   while (1)
   {
