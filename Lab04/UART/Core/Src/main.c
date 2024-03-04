@@ -131,6 +131,7 @@ int main(void)
 					sendString("Error: Incorrect Input \n\r");
 					break;
 			}
+			inputFlag = 0; //Reset Input Flag
   }
 }
 
