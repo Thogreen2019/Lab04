@@ -21,6 +21,10 @@
 #include "stm32f072xb.h"
 #include "core_cm0.h"
 
+//Global Variables to keep track of information
+char inputChar; //character input from computer
+int inputFlag; //an integer equal to 1 if an input has been recieved, 0 if an input has been handled
+
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 /* USER CODE BEGIN PFP */
@@ -86,6 +90,13 @@ int main(void)
   {
 		
   }
+}
+
+//USART3 Interrupt Handler
+void USART3_4_IRQHandler(void)
+{
+  inputFlag = 1;
+  inputChar = USART3->RDR;
 }
 
 /**
