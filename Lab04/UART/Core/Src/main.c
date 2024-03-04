@@ -110,9 +110,9 @@ int main(void)
 	NVIC_EnableIRQ(USART3_4_IRQn); // enable USART 3 interrupts
   	NVIC_SetPriority(USART3_4_IRQn, 2);
 	
-  while (1)
-  {
-	HAL_Delay(1000); //Check every second for input character
+  while (1){
+		/* //Part 1 Code (single character input)
+		HAL_Delay(1000); //Check every second for input character
 		if(inputFlag){ //check an input has been recieved
 			switch(inputChar){ //check what the input character is
 				case'r':
@@ -131,8 +131,62 @@ int main(void)
 					sendString("Error: Incorrect Input \n\r");
 					break;
 			}
+			inputFlag = 0;
+		}*/
+		
+		//Part 2 Code (double character input)
+		HAL_Delay(100); //Check every 100ms for input character
+		if(inputFlag){ //check an input has been recieved
+			switch(inputChar){ //check what the input character is
+				case'r':
+					LED = 6;
+					break;
+				case'b':
+					LED = 7;
+					break;
+				case'o':
+					LED = 8;
+					break;
+				case'g':
+					LED = 9;
+					break;
+				case '0':
+					if(LED<6){ //Check to make sure valid LED was selected
+						sendString("Error: First Character must be r, b, o, or g");
+						break;
+					}
+					GPIOC -> ODR &= (0<<LED); //Turn LED off
+					sendString("LED ");
+					sendChar(LED);
+					sendString("was turned off \n\r");
+					break;
+				case '1':
+					if(LED<6){ //Check to make sure valid LED was selected
+						sendString("Error: First Character must be r, b, o, or g");
+						break;
+					}
+					GPIOC -> ODR |= (1<<LED); //Turn LED on
+					sendString("LED ");
+					sendChar(LED);
+					sendString("was turned on \n\r");
+					break;
+				case '2':
+					if(LED<6){ //Check to make sure valid LED was selected
+						sendString("Error: First Character must be r, b, o, or g");
+						break;
+					}
+					GPIOC -> ODR ^= (1<<LED); //Toggle LED
+					sendString("LED ");
+					sendChar(LED);
+					sendString("was toggled \n\r");
+				default: //Default should only be touched if input was incorrect (besides incorrect LED character)
+					sendString("Error: Incorrect Input \n\r");
+					break;
+			}
+			sendString("Awaiting Input: \n\r");//Ask for next input
+			LED = 0; //Reset LED
 			inputFlag = 0; //Reset Input Flag
-  }
+		}
 }
 
 //USART3 Interrupt Handler
