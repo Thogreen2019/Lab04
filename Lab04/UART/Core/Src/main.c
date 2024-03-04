@@ -27,6 +27,8 @@ int inputFlag; //an integer equal to 1 if an input has been recieved, 0 if an in
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
+void sendChar(char);
+void sendString(char*);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -110,7 +112,25 @@ int main(void)
 	
   while (1)
   {
-		
+	HAL_Delay(1000); //Check every second for input character
+		if(inputFlag){ //check an input has been recieved
+			switch(inputChar){ //check what the input character is
+				case'r':
+					GPIOC -> ODR ^= (1<<6); //Toggle Red LED
+					break;
+				case'b':
+					GPIOC -> ODR ^= (1<<7); //Toggle Blue LED
+					break;
+				case'o':
+					GPIOC -> ODR ^= (1<<8); //Toggle Orange LED
+					break;
+				case'g':
+					GPIOC -> ODR ^= (1<<9); //Toggle Green LED
+					break;
+				default:
+					sendString("Error: Incorrect Input \n\r");
+					break;
+			}
   }
 }
 
@@ -119,6 +139,25 @@ void USART3_4_IRQHandler(void)
 {
   inputFlag = 1;
   inputChar = USART3->RDR;
+}
+
+//Send characters to Computer
+void sendChar(char toSend)
+{
+  while ((USART3->ISR & (1 << 7)) == 0); 
+  USART3->TDR = toSend;
+  return;
+}
+
+//Send strings to Computer
+void sendString(char* toSend)
+{
+	//Send each character at a time
+  for (int i = 0; toSend[i] != '\0'; i++)
+  {
+    sendChar(toSend[i]);
+  }
+  return;
 }
 
 /**
