@@ -48,6 +48,7 @@ int main(void)
   //Enable RCC
 	RCC -> APB1ENR |= RCC_APB1ENR_USART3EN; //Enable USART 3
 	RCC -> AHBENR |= RCC_AHBENR_GPIOBEN; //Enable GPIOB
+	RCC -> AHBENR |= RCC_AHBENR_GPIOCEN; //Enable GPIOC
 	
 	//Set Up Pins PB10/11 as Alternate Function, push/pull, low speed, no pull-up/down
 	GPIOB -> MODER |= (1<<21); //Set PB10 to Alternate Function
@@ -76,6 +77,27 @@ int main(void)
 	GPIOB->AFR[1] |= (1<<14);
 	GPIOB->AFR[1] &= ~(1<<13);
 	GPIOB->AFR[1] &= ~(1<<12);
+
+	//Enable LEDs (GPIOC Pins 6-9)
+	GPIOC -> MODER |= (1<<18); //Set Green LED to Output
+	GPIOC -> OTYPER &= (0<<9); //Set Green LED to no push/pull
+	GPIOC -> OSPEEDR &= (0<<18); //Set Green LED to Low Speed
+	GPIOC -> PUPDR &= (0<<18); //Set Green LED to no Pull up/down
+	
+	GPIOC -> MODER |= (1<<12); //Set Red LED to Output
+	GPIOC -> OTYPER &= (0<<6); //Set Red LED to no push/pull
+	GPIOC -> OSPEEDR &= (0<<12); //Set Red LED to Low Speed
+	GPIOC -> PUPDR &= (0<<12); //Set Red LED to no Pull up/down
+	
+	GPIOC -> MODER |= (1<<14); //Set Blue LED to Output
+	GPIOC -> OTYPER &= (0<<7); //Set Blue LED to no push/pull
+	GPIOC -> OSPEEDR &= (0<<14); //Set Blue LED to Low Speed
+	GPIOC -> PUPDR &= (0<<14); //Set Blue to no Pull up/down
+	
+	GPIOC -> MODER |= (1<<16); //Set Orange LED to Output
+	GPIOC -> OTYPER &= (0<<8); //Set Orange LED to no push/pull
+	GPIOC -> OSPEEDR &= (0<<16); //Set Orange LED to Low Speed
+	GPIOC -> PUPDR &= (0<<16); //Set Orange LED to no Pull up/down
 	
 	//Enable USART3
 	USART3 -> CR1 |= (1<<2); //Enable RX
