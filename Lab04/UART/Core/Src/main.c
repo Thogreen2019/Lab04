@@ -23,7 +23,6 @@
 
 //Global Variables to keep track of information
 char inputChar; //character input from computer
-int inputFlag; //an integer equal to 1 if an input has been recieved, 0 if an input has been handled
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
@@ -75,10 +74,7 @@ int main(void)
 	GPIOB -> PUPDR &= ~(1<<22);
 	
 	//Set up Alternate Function for PB10/11 for AF4
-	GPIOB->AFR[1] &= ~(1<<15);
-	GPIOB->AFR[1] |= (1<<14);
-	GPIOB->AFR[1] &= ~(1<<13);
-	GPIOB->AFR[1] &= ~(1<<12);
+	GPIOB -> AFR[1] |= (0x4 << GPIO_AFRH_AFSEL11_Pos) | (0x4 << GPIO_AFRH_AFSEL10_Pos);
 
 	//Enable LEDs (GPIOC Pins 6-9)
 	GPIOC -> MODER |= (1<<18); //Set Green LED to Output
@@ -107,13 +103,18 @@ int main(void)
 	
 	USART3 -> BRR |= HAL_RCC_GetHCLKFreq()/115200; //Set Baud Rate to 115200 bits/second
 	
-	NVIC_EnableIRQ(USART3_4_IRQn); // enable USART 3 interrupts
-  	NVIC_SetPriority(USART3_4_IRQn, 2);
-	
-  while (1){
-		/* //Part 1 Code (single character input)
-		HAL_Delay(1000); //Check every second for input character
-		if(inputFlag){ //check an input has been recieved
+	int LED = 0; //integer to keep track of what LED is being picked
+	int secondChar = 0; //integer to keep track if first char has been recieved
+
+	//Enable USART3 before While Loop
+	USART3->CR1 |= 1;
+	sendString("Awaiting input: \n\r");
+  while (1)
+  {
+		/*//Part 1 Code (single character input)
+		//HAL_Delay(100); //Check every second for input character
+		if((USART3 -> ISR & (1<<5)) == (1 << 5)){ //check an input has been recieved
+			inputChar = USART3 -> RDR;
 			switch(inputChar){ //check what the input character is
 				case'r':
 					GPIOC -> ODR ^= (1<<6); //Toggle Red LED
@@ -131,12 +132,13 @@ int main(void)
 					sendString("Error: Incorrect Input \n\r");
 					break;
 			}
-			inputFlag = 0;
+			USART3 -> ISR &= (0<<5);
 		}*/
 		
 		//Part 2 Code (double character input)
 		HAL_Delay(100); //Check every 100ms for input character
-		if(inputFlag){ //check an input has been recieved
+		while(((USART3 -> ISR & (1<<5)) == (1 << 5))){ //check an input has been recieved
+			inputChar = USART3 -> RDR;
 			switch(inputChar){ //check what the input character is
 				case'r':
 					LED = 6;
@@ -149,44 +151,56 @@ int main(void)
 					break;
 				case'g':
 					LED = 9;
+					secondChar = 1;
 					break;
 				case '0':
 					if(LED<6){ //Check to make sure valid LED was selected
-						sendString("Error: First Character must be r, b, o, or g");
+						sendString("Error: First Character must be r, b, o, or g\n\r");
 						break;
 					}
 					GPIOC -> ODR &= (0<<LED); //Turn LED off
 					sendString("LED ");
 					sendChar(LED);
 					sendString("was turned off \n\r");
+					USART3 -> ISR &= (0<<5); //Reset input flag
+					LED = 0;
+					sendString("Awaiting Input: \n\r");//Ask for next input
 					break;
 				case '1':
 					if(LED<6){ //Check to make sure valid LED was selected
-						sendString("Error: First Character must be r, b, o, or g");
+						sendString("Error: First Character must be r, b, o, or g \n\r");
 						break;
 					}
 					GPIOC -> ODR |= (1<<LED); //Turn LED on
 					sendString("LED ");
 					sendChar(LED);
 					sendString("was turned on \n\r");
+					USART3 -> ISR &= (0<<5); //Reset input flag
+					LED = 0;
+					sendString("Awaiting Input: \n\r");//Ask for next input
 					break;
 				case '2':
 					if(LED<6){ //Check to make sure valid LED was selected
-						sendString("Error: First Character must be r, b, o, or g");
+						sendString("Error: First Character must be r, b, o, or g\n\r");
 						break;
 					}
 					GPIOC -> ODR ^= (1<<LED); //Toggle LED
 					sendString("LED ");
 					sendChar(LED);
 					sendString("was toggled \n\r");
+					USART3 -> ISR &= (0<<5); //Reset input flag
+					sendString("Awaiting Input: \n\r");//Ask for next input
+					LED = 0;
+					break;
 				default: //Default should only be touched if input was incorrect (besides incorrect LED character)
 					sendString("Error: Incorrect Input \n\r");
+					USART3 -> ISR &= (0<<5); //Reset input flag
+					LED = 0;
+					sendString("Awaiting Input: \n\r");//Ask for next input
 					break;
 			}
-			sendString("Awaiting Input: \n\r");//Ask for next input
-			LED = 0; //Reset LED
-			inputFlag = 0; //Reset Input Flag
 		}
+  }
 }
 
 //USART3 Interrupt Handler
